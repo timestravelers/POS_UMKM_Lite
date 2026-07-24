@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS MINIMARKET PRO - ULTIMATE LOCAL</title>
+    <style>
+        :root {
+            --dos-bg: #0000AA; --dos-panel: #000000; --dos-text: #FFFFFF;
+            --dos-cyan: #00AAAA; --dos-yellow: #FFFF00; --dos-green: #00FF00;
+            --dos-red: #FF0000; --dos-gray: #AAAAAA;
+        }
+        /* FONT SIZE DIPERBAIKI: 16px global, 14px tabel agar padat dan rapi */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; font-size: 16px; }
+        body { background-color: var(--dos-bg); color: var(--dos-text); height: 100vh; width: 100vw; overflow: hidden; display: flex; flex-direction: column; cursor: default; user-select: none; }
+        
+        .dos-box { background-color: var(--dos-panel); border: 2px solid var(--dos-text); }
+        .dos-box-double { background-color: var(--dos-panel); border: 4px double var(--dos-text); }
+        .dos-btn { background-color: var(--dos-cyan); color: var(--dos-panel); border: 2px solid var(--dos-text); padding: 2px 10px; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 16px; white-space: nowrap; }
+        .dos-btn:hover { background-color: var(--dos-yellow); }
+        .dos-btn-danger { background-color: var(--dos-red); color: var(--dos-text); border-color: var(--dos-text); }
+        .dos-btn-danger:hover { background-color: #FF5555; }
+        .dos-btn-success { background-color: var(--dos-green); color: var(--dos-panel); border-color: var(--dos-text); }
+        .dos-btn-success:hover { background-color: #55FF55; }
+        .dos-btn:disabled { background-color: var(--dos-gray); cursor: not-allowed; opacity: 0.5; }
+        
+        .dos-input, .dos-textarea, .dos-select { background-color: var(--dos-panel); color: var(--dos-green); border: 2px solid var(--dos-gray); padding: 2px 6px; outline: none; font-size: 16px; user-select: text; }
+        .dos-input:focus, .dos-textarea:focus { border-color: var(--dos-yellow); background-color: #001100; }
+        .dos-textarea { resize: vertical; min-height: 80px; }
+        input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+
+        #authOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--dos-bg); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .auth-box { width: 420px; padding: 20px; text-align: center; }
+        .auth-box h1 { color: var(--dos-yellow); margin-bottom: 20px; letter-spacing: 2px; font-size: 22px; }
+        
+        .role-badge { display: inline-block; color: var(--dos-green); padding: 4px 10px; margin: 0 5px; border: 2px solid; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .role-badge.admin { color: var(--dos-cyan); border-color: var(--dos-cyan); }
+        .role-badge.kasir { color: var(--dos-cyan); border-color: var(--dos-cyan); }
+        .role-badge.active { background: var(--dos-yellow); color: var(--dos-panel) !important; }
+
+        .menu-bar { background-color: var(--dos-cyan); color: var(--dos-panel); display: flex; padding: 2px 10px; font-weight: bold; user-select: none; font-size: 16px; }
+        .menu-item { padding: 2px 10px; cursor: pointer; margin-right: 4px; }
+        .menu-item:hover, .menu-item.active { background-color: var(--dos-panel); color: var(--dos-cyan); }
+        .menu-item.disabled { color: var(--dos-gray); cursor: not-allowed; text-decoration: line-through; }
+        .menu-item .shortcut { text-decoration: underline; }
+
+        .main-area { flex: 1; padding: 10px; overflow: hidden; display: flex; flex-direction: column; }
+        .tab-content { display: none; height: 100%; flex-direction: column; }
+        .tab-content.active { display: flex; }
+
+        .status-bar { background-color: var(--dos-cyan); color: var(--dos-panel); padding: 2px 10px; display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; }
+        .role-indicator { background: var(--dos-panel); color: var(--dos-yellow); padding: 2px 8px; border: 2px solid var(--dos-yellow); font-size: 15px; }
+        .role-indicator.kasir { color: var(--dos-cyan); border-color: var(--dos-cyan); }
+        .network-status { color: var(--dos-green); font-weight: bold; font-size: 15px; }
+
+        .dos-table-container { flex: 1; overflow: auto; border: 2px solid var(--dos-text); background-color: var(--dos-panel); margin: 10px 0; }
+        table.dos-table { width: 100%; border-collapse: collapse; color: var(--dos-text); font-size: 15px; }
+        table.dos-table th { background-color: var(--dos-cyan); color: var(--dos-panel); text-align: left; padding: 4px 8px; border-right: 1px solid var(--dos-bg); border-bottom: 2px solid var(--dos-text); position: sticky; top: 0; }
+        table.dos-table td { padding: 4px 8px; border-bottom: 1px solid #333333; white-space: nowrap; }
+        table.dos-table tbody tr:hover { background-color: var(--dos-bg); color: var(--dos-yellow); cursor: pointer; }
+        table.dos-table tbody tr.row-highlighted { background-color: var(--dos-cyan) !important; color: var(--dos-panel) !important; font-weight: bold; }
+
+        .pos-split { display: flex; gap: 10px; flex: 1; overflow: hidden; }
+        .pos-left { flex: 1.2; display: flex; flex-direction: column; }
+        .pos-right { flex: 0.8; display: flex; flex-direction: column; }
+        .pos-header-input { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .pos-header-input label { color: var(--dos-yellow); min-width: 130px; font-size: 16px; }
+        .search-hint { color: var(--dos-gray); font-size: 15px; margin-left: 10px; }
+        .search-hint.active { color: var(--dos-yellow); }
+        
+        .cart-summary { border-top: 2px solid var(--dos-text); padding-top: 10px; margin-top: auto; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 16px; }
+        .summary-row.total { font-size: 22px; color: var(--dos-yellow); font-weight: bold; border-top: 2px solid var(--dos-gray); padding-top: 5px; margin-top: 5px; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: none; justify-content: center; align-items: center; z-index: 5000; }
+        .modal-overlay.active { display: flex; }
+        .dos-dialog { min-width: 400px; max-width: 550px; background-color: var(--dos-bg); border: 4px double var(--dos-text); box-shadow: 8px 8px 0 rgba(0,0,0,0.5); }
+        .dialog-title { background-color: var(--dos-cyan); color: var(--dos-panel); text-align: center; font-weight: bold; padding: 4px; letter-spacing: 1px; font-size: 16px; }
+        .dialog-body { padding: 20px; color: var(--dos-text); text-align: center; font-size: 18px; line-height: 1.4; }
+        .dialog-body-left { padding: 20px; color: var(--dos-text); text-align: left; font-size: 16px; line-height: 1.4; }
+        .dialog-footer { display: flex; justify-content: center; gap: 15px; padding: 15px; border-top: 2px solid var(--dos-text); }
+        .form-row { display: flex; margin-bottom: 10px; align-items: center; }
+        .form-row label { min-width: 130px; color: var(--dos-yellow); font-size: 16px; }
+        .form-row .dos-input, .form-row .dos-select { flex: 1; }
+
+        /* RETRO CSS BAR CHART */
+        .retro-chart { display: flex; align-items: flex-end; justify-content: space-around; height: 180px; padding: 10px; border: 2px solid var(--dos-gray); background: var(--dos-panel); margin-bottom: 15px; }
+        .chart-bar-container { display: flex; flex-direction: column; align-items: center; width: 12%; }
+        .chart-bar { width: 100%; background-color: var(--dos-green); border: 1px solid var(--dos-text); transition: height 0.3s; }
+        .chart-bar:hover { background-color: var(--dos-yellow); }
+        .chart-label { font-size: 13px; color: var(--dos-cyan); margin-top: 5px; text-align: center; word-wrap: break-word; }
+        .chart-value { font-size: 13px; color: var(--dos-yellow); margin-bottom: 5px; font-weight: bold; }
+
+        .report-tabs-container, .settings-tabs-container { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+        .report-tab-header, .settings-tab-header { display: flex; gap: 4px; border-bottom: 2px solid var(--dos-text); }
+        .report-tab-btn, .settings-tab-btn { background-color: var(--dos-panel); color: var(--dos-gray); border: 2px solid var(--dos-text); border-bottom: none; padding: 4px 12px; cursor: pointer; font-weight: bold; font-size: 15px; position: relative; top: 2px; }
+        .report-tab-btn:hover, .settings-tab-btn:hover { color: var(--dos-yellow); }
+        .report-tab-btn.active, .settings-tab-btn.active { background-color: var(--dos-bg); color: var(--dos-yellow); border-color: var(--dos-text); z-index: 2; }
+        .report-tab-btn.disabled, .settings-tab-btn.disabled { color: var(--dos-gray); text-decoration: line-through; cursor: not-allowed; }
+        
+        .report-tab-content, .settings-tab-content { flex: 1; background-color: var(--dos-bg); border: 2px solid var(--dos-text); border-top: none; padding: 15px; overflow-y: auto; }
+        .report-tab-pane, .settings-tab-pane { display: none; height: 100%; flex-direction: column; }
+        .report-tab-pane.active, .settings-tab-pane.active { display: flex; }
+
+        .report-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--dos-text); }
+        .report-title { color: var(--dos-yellow); font-weight: bold; font-size: 18px; }
+        .report-filter-bar { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; padding: 8px; background: var(--dos-panel); border: 2px solid var(--dos-gray); flex-wrap: wrap; }
+        .report-filter-bar label { color: var(--dos-cyan); min-width: auto; margin-right: 4px; font-size: 15px; }
+
+        .report-summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 12px; }
+        .report-card { background: var(--dos-panel); border: 2px solid var(--dos-text); padding: 10px; }
+        .report-card .rc-label { color: var(--dos-cyan); font-size: 15px; }
+        .report-card .rc-value { color: var(--dos-yellow); font-size: 20px; font-weight: bold; margin-top: 4px; }
+        .report-card .rc-value.positive { color: var(--dos-green); }
+        .report-card .rc-value.negative { color: var(--dos-red); }
+
+        .report-table-wrap { flex: 1; overflow: auto; border: 2px solid var(--dos-text); background: var(--dos-panel); }
+        .status-badge { display: inline-block; padding: 1px 6px; border: 1px solid; font-size: 14px; }
+        .status-lunas { color: var(--dos-green); border-color: var(--dos-green); }
+        .status-belum { color: var(--dos-red); border-color: var(--dos-red); }
+
+        .category-input-group { display: flex; gap: 4px; flex: 1; position: relative; }
+        .cat-btn { background-color: var(--dos-cyan); color: var(--dos-panel); border: 2px solid var(--dos-text); padding: 2px 8px; cursor: pointer; font-weight: bold; font-size: 16px; min-width: 32px; }
+        .cat-btn:hover { background-color: var(--dos-yellow); }
+        .cat-btn-add { background-color: var(--dos-green); }
+        .cat-dropdown { position: absolute; top: 100%; left: 0; right: 70px; background-color: var(--dos-panel); border: 2px solid var(--dos-text); border-top: none; z-index: 100; max-height: 150px; overflow-y: auto; display: none; }
+        .cat-dropdown.show { display: block; }
+        .cat-dropdown-item { padding: 4px 10px; cursor: pointer; color: var(--dos-green); font-size: 15px; }
+        .cat-dropdown-item:hover { background-color: var(--dos-cyan); color: var(--dos-panel); }
+
+        .help-content { white-space: pre-wrap; text-align: left; max-height: 350px; overflow-y: auto; padding: 10px; background: var(--dos-panel); border: 2px solid var(--dos-gray); font-size: 15px; line-height: 1.5; }
+
+        /* NATIVE A4 PRINT STYLING (100% Offline PDF Export) */
+        @media print {
+            @page { size: A4; margin: 15mm; }
+            body * { visibility: hidden; }
+            #printableArea, #printableArea * { visibility: visible; }
+            #printableArea { 
+                position: absolute; left: 0; top: 0; width: 100%; display: block !important; 
+                background: white; color: black; font-family: 'Courier New', monospace; font-size: 12px; padding: 20px;
+            }
+            .print-header { text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 20px; }
+            .print-title { font-size: 20px; font-weight: bold; text-transform: uppercase; }
+            .print-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 11px; }
+            .print-table th, .print-table td { border: 1px solid black; padding: 6px; text-align: left; }
+            .print-table th { background-color: #eee; font-weight: bold; }
+            .print-footer { margin-top: 30px; text-align: right; font-size: 12px; }
+            .print-rl-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dotted #ccc; }
+            .print-rl-total { font-weight: bold; font-size: 14px; margin-top: 10px; border-top: 2px solid black; padding-top: 5px; }
+        }
+        .no-context-menu { user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; }
+    </style>
+</head>
+<body class="no-context-menu" oncontextmenu="return false;">
+
+    <!-- AUTH SCREEN -->
+    <div id="authOverlay">
+        <div class="auth-box dos-box-double">
+            <h1>POS MINIMARKET PRO<br><span style="font-size:15px; color:var(--dos-cyan);">[ ULTIMATE LOCAL NETWORK ]</span></h1>
+            <div style="margin-bottom: 15px; padding: 8px; border: 2px solid var(--dos-cyan); background: var(--dos-panel);">
+                <div style="color: var(--dos-yellow); margin-bottom: 5px; font-weight: bold;">PILIH ROLE:</div>
+                <span class="role-badge admin active" id="roleAdmin" onclick="selectRole('admin')">[ ADMIN ]</span>
+                <span class="role-badge kasir" id="roleKasir" onclick="selectRole('kasir')">[ KASIR ]</span>
+            </div>
+            <div class="form-row" style="justify-content: center; margin-bottom: 15px;">
+                <label style="min-width: 90px; text-align: right; color: var(--dos-cyan);">USER :</label>
+                <input type="text" id="authUser" class="dos-input" style="width: 200px; text-transform: uppercase;" autocomplete="off">
+            </div>
+            <div class="form-row" style="justify-content: center; margin-bottom: 20px;">
+                <label style="min-width: 90px; text-align: right; color: var(--dos-cyan);">PASS :</label>
+                <input type="password" id="authPass" class="dos-input" style="width: 200px;" autocomplete="off">
+            </div>
+            <button class="dos-btn" onclick="handleLogin()" style="font-size: 18px; padding: 6px 20px;">[ F10 ] MASUK SISTEM</button>
+            <div style="margin-top: 15px; font-size: 14px; color: var(--dos-gray);">Default: admin/admin123 | kasir/kasir123</div>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="appContainer" style="display: none; height: 100%; flex-direction: column;">
+        <div class="menu-bar">
+            <div class="menu-item active" data-tab="pos" data-role="all" onclick="switchTab('pos')"><span class="shortcut">T</span>ransaksi (F2)</div>
+            <div class="menu-item" data-tab="inventory" data-role="admin" onclick="switchTab('inventory')"><span class="shortcut">I</span>nventaris</div>
+            <div class="menu-item" data-tab="reports" data-role="all" onclick="switchTab('reports')"><span class="shortcut">L</span>aporan</div>
+            <div class="menu-item" data-tab="settings" data-role="admin" onclick="switchTab('settings')"><span class="shortcut">P</span>engaturan</div>
+            <div class="menu-item" onclick="handleLogout()" style="margin-left: auto;"><span class="shortcut">K</span>eluar (F10)</div>
+        </div>
+
+        <div class="main-area">
+            <!-- TAB: POS -->
+            <div id="tab-pos" class="tab-content active">
+                <div class="pos-split">
+                    <div class="pos-left">
+                        <div class="pos-header-input">
+                            <label>KODE BARANG (F2):</label>
+                            <input type="text" id="barcodeInput" class="dos-input" style="flex: 1; font-size: 20px;" placeholder="Ketik nama/barcode..." autocomplete="off">
+                            <span id="searchHint" class="search-hint">[↑↓] Navigasi [Enter] Pilih</span>
+                        </div>
+                        <div class="dos-table-container">
+                            <table class="dos-table" id="catalogTable">
+                                <thead><tr><th width="15%">KODE</th><th width="45%">NAMA BARANG</th><th width="20%">HARGA</th><th width="20%">STOK</th></tr></thead>
+                                <tbody id="catalogTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="pos-right dos-box" style="padding: 10px;">
+                        <div style="color: var(--dos-yellow); border-bottom: 2px solid var(--dos-gray); padding-bottom: 5px; margin-bottom: 10px; font-weight: bold; font-size: 16px;">:: KERANJANG ::</div>
+                        <div class="form-row"><label>PELANGGAN:</label><input type="text" id="customerName" class="dos-input" value="UMUM"></div>
+                        <div class="dos-table-container" style="flex: 1; margin: 5px 0;">
+                            <table class="dos-table" style="font-size: 15px;">
+                                <thead><tr><th width="10%">#</th><th width="50%">NAMA</th><th width="15%">QTY</th><th width="25%">SUBTOTAL</th></tr></thead>
+                                <tbody id="cartTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="cart-summary">
+                            <div class="summary-row"><span>TOTAL ITEM:</span><span id="cartTotalQty">0</span></div>
+                            <div class="summary-row total"><span>TOTAL BAYAR:</span><span id="cartTotalAmount">Rp 0</span></div>
+                            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                <button class="dos-btn dos-btn-danger" style="flex: 1;" onclick="clearCart()">[ F9 ] BATAL</button>
+                                <button class="dos-btn dos-btn-success" style="flex: 2;" onclick="openPaymentModal()">[ F4 ] BAYAR</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: INVENTARIS -->
+            <div id="tab-inventory" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span style="color: var(--dos-yellow); font-weight: bold; font-size: 18px;">:: MASTER DATA BARANG ::</span>
+                    <button class="dos-btn" onclick="openItemModal()">[ F3 ] TAMBAH</button>
+                </div>
+                <div class="dos-table-container">
+                    <table class="dos-table">
+                        <thead><tr><th width="12%">KODE</th><th width="30%">NAMA</th><th width="13%">KATEGORI</th><th width="13%">HARGA</th><th width="12%">HPP</th><th width="10%">STOK</th><th width="10%">AKSI</th></tr></thead>
+                        <tbody id="inventoryTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB: LAPORAN (LENGKAP 5 TAB) -->
+            <div id="tab-reports" class="tab-content">
+                <div class="report-tabs-container">
+                    <div class="report-tab-header">
+                        <button class="report-tab-btn active" data-rpane="rpane-penjualan" onclick="switchReportTab('rpane-penjualan')">[1] PENJUALAN</button>
+                        <button class="report-tab-btn" data-rpane="rpane-rugilaba" data-role="admin" onclick="switchReportTab('rpane-rugilaba')">[2] RUGI-LABA</button>
+                        <button class="report-tab-btn" data-rpane="rpane-kas" data-role="admin" onclick="switchReportTab('rpane-kas')">[3] ALUR KAS</button>
+                        <button class="report-tab-btn" data-rpane="rpane-hutangpiutang" data-role="admin" onclick="switchReportTab('rpane-hutangpiutang')">[4] HUTANG-PIUTANG</button>
+                        <button class="report-tab-btn" data-rpane="rpane-pengeluaran" data-role="admin" onclick="switchReportTab('rpane-pengeluaran')">[5] PENGELUARAN</button>
+                    </div>
+                    <div class="report-tab-content">
+                        <!-- 1. PENJUALAN -->
+                        <div id="rpane-penjualan" class="report-tab-pane active">
+                            <div class="report-header-bar">
+                                <span class="report-title">:: LAPORAN PENJUALAN ::</span>
+                                <button class="dos-btn dos-btn-success" onclick="printReport('penjualan')">[ PRINT / PDF ]</button>
+                            </div>
+                            <div class="report-filter-bar">
+                                <label>DARI:</label><input type="date" id="filterTglMulai" class="dos-input" style="width: 140px;">
+                                <label>SAMPAI:</label><input type="date" id="filterTglSelesai" class="dos-input" style="width: 140px;">
+                                <button class="dos-btn" onclick="renderLaporanPenjualan()">[ ENTER ] TAMPILKAN</button>
+                            </div>
+                            <div class="retro-chart" id="penjualanChart"></div>
+                            <div class="report-summary-cards" id="penjualanSummaryCards"></div>
+                            <div class="report-table-wrap">
+                                <table class="dos-table">
+                                    <thead><tr><th>TANGGAL</th><th>ID NOTA</th><th>PELANGGAN</th><th>ITEMS</th><th>METODE</th><th>TOTAL</th></tr></thead>
+                                    <tbody id="penjualanTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- 2. RUGI-LABA -->
+                        <div id="rpane-rugilaba" class="report-tab-pane">
+                            <div class="report-header-bar">
+                                <span class="report-title">:: LAPORAN RUGI - LABA ::</span>
+                                <button class="dos-btn dos-btn-success" onclick="printReport('rugilaba')">[ PRINT / PDF ]</button>
+                            </div>
+                            <div class="report-filter-bar">
+                                <label>PERIODE:</label><input type="month" id="filterBulanRL" class="dos-input" style="width: 160px;">
+                                <button class="dos-btn" onclick="renderLaporanRugiLaba()">[ ENTER ] HITUNG</button>
+                            </div>
+                            <div id="rugilabaContent" style="background: var(--dos-panel); border: 2px solid var(--dos-text); padding: 15px; flex: 1; overflow-y: auto;"></div>
+                        </div>
+                        <!-- 3. ALUR KAS -->
+                        <div id="rpane-kas" class="report-tab-pane">
+                            <div class="report-header-bar">
+                                <span class="report-title">:: ALUR KAS (CASH FLOW) ::</span>
+                                <button class="dos-btn dos-btn-success" onclick="printReport('kas')">[ PRINT / PDF ]</button>
+                            </div>
+                            <div class="report-filter-bar">
+                                <label>DARI:</label><input type="date" id="filterKasMulai" class="dos-input" style="width: 140px;">
+                                <label>SAMPAI:</label><input type="date" id="filterKasSelesai" class="dos-input" style="width: 140px;">
+                                <button class="dos-btn" onclick="renderLaporanAlurKas()">[ ENTER ] TAMPILKAN</button>
+                            </div>
+                            <div class="report-summary-cards" id="kasSummaryCards"></div>
+                            <div class="report-table-wrap">
+                                <table class="dos-table">
+                                    <thead><tr><th>TANGGAL</th><th>JENIS</th><th>KATEGORI</th><th>KETERANGAN</th><th>MASUK</th><th>KELUAR</th></tr></thead>
+                                    <tbody id="kasTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- 4. HUTANG-PIUTANG -->
+                        <div id="rpane-hutangpiutang" class="report-tab-pane">
+                            <div class="report-header-bar">
+                                <span class="report-title">:: HUTANG & PIUTANG ::</span>
+                                <div>
+                                    <button class="dos-btn" onclick="openHutangPiutangModal('hutang')">[ + ] HUTANG</button>
+                                    <button class="dos-btn" onclick="openHutangPiutangModal('piutang')">[ + ] PIUTANG</button>
+                                    <button class="dos-btn dos-btn-success" onclick="printReport('hp')">[ PRINT / PDF ]</button>
+                                </div>
+                            </div>
+                            <div class="report-summary-cards" id="hpSummaryCards"></div>
+                            <div class="report-table-wrap">
+                                <table class="dos-table">
+                                    <thead><tr><th>TGL</th><th>TIPE</th><th>PIHAK</th><th>KETERANGAN</th><th>JUMLAH</th><th>STATUS</th><th>AKSI</th></tr></thead>
+                                    <tbody id="hpTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- 5. PENGELUARAN -->
+                        <div id="rpane-pengeluaran" class="report-tab-pane">
+                            <div class="report-header-bar">
+                                <span class="report-title">:: PENGELUARAN LAIN-LAIN ::</span>
+                                <div>
+                                    <button class="dos-btn" onclick="openExpenseModal()">[ + ] TAMBAH</button>
+                                    <button class="dos-btn dos-btn-success" onclick="printReport('pengeluaran')">[ PRINT / PDF ]</button>
+                                </div>
+                            </div>
+                            <div class="report-filter-bar">
+                                <label>DARI:</label><input type="date" id="filterExpMulai" class="dos-input" style="width: 140px;">
+                                <label>SAMPAI:</label><input type="date" id="filterExpSelesai" class="dos-input" style="width: 140px;">
+                                <button class="dos-btn" onclick="renderLaporanPengeluaran()">[ ENTER ] TAMPILKAN</button>
+                            </div>
+                            <div class="report-summary-cards" id="expenseSummaryCards"></div>
+                            <div class="report-table-wrap">
+                                <table class="dos-table">
+                                    <thead><tr><th>TANGGAL</th><th>KATEGORI</th><th>KETERANGAN</th><th>JUMLAH</th><th>AKSI</th></tr></thead>
+                                    <tbody id="expenseTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: PENGATURAN (LENGKAP 5 TAB) -->
+            <div id="tab-settings" class="tab-content">
+                <span style="color: var(--dos-yellow); font-weight: bold; margin-bottom: 10px; font-size: 18px;">:: PENGATURAN SISTEM ::</span>
+                <div class="settings-tabs-container">
+                    <div class="settings-tab-header">
+                        <button class="settings-tab-btn active" data-pane="pane-identitas" onclick="switchSettingsTab('pane-identitas')">[1] IDENTITAS</button>
+                        <button class="settings-tab-btn" data-pane="pane-bantuan" onclick="switchSettingsTab('pane-bantuan')">[2] BANTUAN</button>
+                        <button class="settings-tab-btn" data-pane="pane-kategori" onclick="switchSettingsTab('pane-kategori')">[3] KATEGORI</button>
+                        <button class="settings-tab-btn" data-pane="pane-json" onclick="switchSettingsTab('pane-json')">[4] DATA JSON</button>
+                        <button class="settings-tab-btn" data-pane="pane-keamanan" onclick="switchSettingsTab('pane-keamanan')">[5] KEAMANAN</button>
+                    </div>
+                    <div class="settings-tab-content">
+                        <div id="pane-identitas" class="settings-tab-pane active">
+                            <div style="max-width: 600px;">
+                                <div style="color: var(--dos-cyan); border-bottom: 1px solid var(--dos-gray); margin-bottom: 15px; padding-bottom: 5px;">:: IDENTITAS TOKO & STRUK ::</div>
+                                <div class="form-row"><label>NAMA TOKO:</label><input type="text" id="setStoreName" class="dos-input" style="flex: 2;"></div>
+                                <div class="form-row"><label>ALAMAT TOKO:</label><input type="text" id="setStoreAddress" class="dos-input" style="flex: 2;"></div>
+                                <div class="form-row"><label>TELEPON:</label><input type="text" id="setStorePhone" class="dos-input" style="flex: 2;"></div>
+                                <div class="form-row"><label>URL LOGO:</label><input type="text" id="setStoreLogo" class="dos-input" style="flex: 2;" placeholder="https://..."></div>
+                                <div class="form-row" style="align-items: flex-start;"><label style="margin-top: 4px;">FOOTER STRUK:</label><textarea id="setStoreFooter" class="dos-textarea" style="flex: 2; height: 60px;"></textarea></div>
+                                <div style="margin-top: 20px;"><button class="dos-btn" onclick="saveSettings()">[ ENTER ] SIMPAN</button></div>
+                            </div>
+                        </div>
+                        <div id="pane-bantuan" class="settings-tab-pane">
+                            <div style="color: var(--dos-cyan); border-bottom: 1px solid var(--dos-gray); margin-bottom: 15px; padding-bottom: 5px;">:: KONTEN BANTUAN (F1) ::</div>
+                            <textarea id="setHelpContent" class="dos-textarea" style="width: 100%; height: 350px; margin-bottom: 15px;"></textarea>
+                            <button class="dos-btn" onclick="saveHelpContent()">[ ENTER ] SIMPAN</button>
+                        </div>
+                        <div id="pane-kategori" class="settings-tab-pane">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <div style="color: var(--dos-cyan); border-bottom: 1px solid var(--dos-gray); padding-bottom: 5px;">:: KELOLA KATEGORI ::</div>
+                                <button class="dos-btn dos-btn-success" onclick="openCategoryModal()">[ + ] TAMBAH</button>
+                            </div>
+                            <div class="dos-table-container" style="max-height: 300px;">
+                                <table class="dos-table"><thead><tr><th width="10%">#</th><th width="70%">NAMA</th><th width="20%">AKSI</th></tr></thead><tbody id="categoryTableBody"></tbody></table>
+                            </div>
+                        </div>
+                        <div id="pane-json" class="settings-tab-pane">
+                            <div style="color: var(--dos-cyan); border-bottom: 1px solid var(--dos-gray); margin-bottom: 15px; padding-bottom: 5px;">:: MANAJEMEN DATA JSON ::</div>
+                            <div style="max-width: 500px;">
+                                <div style="margin-bottom: 20px;"><div style="color: var(--dos-yellow); margin-bottom: 8px;">EXPORT (BACKUP):</div><button class="dos-btn dos-btn-success" style="width: 100%;" onclick="exportDataToJSON()">[ EXPORT ] DOWNLOAD DATA.JSON</button></div>
+                                <div style="border-top: 1px solid var(--dos-gray); padding-top: 20px;">
+                                    <div style="color: var(--dos-yellow); margin-bottom: 8px;">IMPORT (RESTORE):</div>
+                                    <input type="file" id="jsonImportInput" accept=".json" class="dos-input" style="margin-bottom: 10px; color: var(--dos-gray); width: 100%;">
+                                    <button class="dos-btn dos-btn-danger" style="width: 100%;" onclick="importDataFromJSON()">[ IMPORT ] TIMPA DATA</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="pane-keamanan" class="settings-tab-pane">
+                            <div style="max-width: 500px;">
+                                <div style="color: var(--dos-cyan); border-bottom: 1px solid var(--dos-gray); margin-bottom: 15px; padding-bottom: 5px;">:: KEAMANAN ::</div>
+                                <div class="form-row"><label>PASSWORD BARU:</label><input type="password" id="setNewPass" class="dos-input" style="flex: 2;" placeholder="Kosongkan jika tidak diubah"></div>
+                                <button class="dos-btn dos-btn-danger" style="margin-top: 10px;" onclick="updatePassword()">[ ENTER ] UPDATE PASSWORD</button>
+                                <div style="border-top: 1px solid var(--dos-gray); padding-top: 20px; margin-top: 30px;">
+                                    <div style="color: var(--dos-cyan); border-bottom: 1px solid var(--dos-gray); margin-bottom: 15px; padding-bottom: 5px;">:: INFO SISTEM ::</div>
+                                    <div style="font-size: 15px; color: var(--dos-gray); line-height: 1.8;">
+                                        Versi: ULTIMATE LOCAL v3.0<br>
+                                        Engine: Vanilla JS | Storage: Local Network JSON<br>
+                                        Font: System Monospace (100% Offline)<br>
+                                        <span style="color: var(--dos-yellow);">=== Dikembangkan oleh Muhamad Thorik ===</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span id="statusUser">USER: -</span>
+                <span id="statusRole" class="role-indicator">-</span>
+                <span id="networkStatus" class="network-status">● LOCAL DB</span>
+            </div>
+            <span id="statusClock">00:00:00</span>
+            <span>[F1]Bantuan [F2]Input [F4]Bayar [F9]Batal [F10]Keluar</span>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div id="dosDialogOverlay" class="modal-overlay">
+        <div class="dos-dialog">
+            <div class="dialog-title" id="dosDialogTitle">:: KONFIRMASI ::</div>
+            <div class="dialog-body" id="dosDialogBody">Pesan</div>
+            <div class="dialog-footer" id="dosDialogFooter"></div>
+        </div>
+    </div>
+
+    <div id="paymentModal" class="modal-overlay">
+        <div class="dos-dialog" style="min-width: 420px;">
+            <div class="dialog-title">:: PEMBAYARAN ::</div>
+            <div class="dialog-body-left">
+                <div class="form-row"><label>TOTAL:</label><input type="text" id="payTotal" class="dos-input" readonly style="color: var(--dos-yellow); font-weight: bold; font-size: 20px;"></div>
+                <div class="form-row"><label>METODE:</label><select id="payMethod" class="dos-select"><option value="TUNAI">TUNAI</option><option value="QRIS">QRIS</option><option value="TRANSFER">TRANSFER</option></select></div>
+                <div class="form-row"><label>BAYAR:</label><input type="number" id="payReceived" class="dos-input" oninput="calculateChange()" autofocus></div>
+                <div class="form-row"><label>KEMBALI:</label><input type="text" id="payChange" class="dos-input" readonly style="color: var(--dos-green); font-weight: bold; font-size: 20px;"></div>
+            </div>
+            <div class="dialog-footer">
+                <button class="dos-btn dos-btn-danger" onclick="closeModal('paymentModal')">[ ESC ] BATAL</button>
+                <button class="dos-btn dos-btn-success" onclick="processTransaction()">[ ENTER ] PROSES</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="itemModal" class="modal-overlay">
+        <div class="dos-dialog" style="min-width: 500px;">
+            <div class="dialog-title" id="itemModalTitle">:: TAMBAH BARANG ::</div>
+            <div class="dialog-body-left">
+                <input type="hidden" id="itemEditId">
+                <div class="form-row"><label>KODE:</label><input type="text" id="itemBarcode" class="dos-input"></div>
+                <div class="form-row"><label>NAMA:</label><input type="text" id="itemName" class="dos-input" style="text-transform: uppercase;"></div>
+                <div class="form-row" style="align-items: flex-start;">
+                    <label style="margin-top: 4px;">KATEGORI:</label>
+                    <div class="category-input-group">
+                        <input type="text" id="itemCategoryInput" class="dos-input" placeholder="Ketik atau pilih..." autocomplete="off">
+                        <button class="cat-btn" onclick="toggleCategoryDropdown()" title="Pilih">▼</button>
+                        <button class="cat-btn cat-btn-add" onclick="openCategoryModalFromItem()" title="Tambah">+</button>
+                        <div id="categoryDropdown" class="cat-dropdown"></div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-row" style="flex: 1;"><label>HARGA:</label><input type="number" id="itemPrice" class="dos-input" min="0"></div>
+                    <div class="form-row" style="flex: 1;"><label>HPP:</label><input type="number" id="itemCost" class="dos-input" min="0"></div>
+                    <div class="form-row" style="flex: 1;"><label>STOK:</label><input type="number" id="itemStock" class="dos-input" min="0"></div>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="dos-btn dos-btn-danger" onclick="closeModal('itemModal')">[ ESC ] BATAL</button>
+                <button class="dos-btn" onclick="saveItemData()">[ ENTER ] SIMPAN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="categoryModal" class="modal-overlay">
+        <div class="dos-dialog" style="min-width: 350px;">
+            <div class="dialog-title">:: TAMBAH KATEGORI ::</div>
+            <div class="dialog-body-left">
+                <div class="form-row"><label>NAMA KATEGORI:</label><input type="text" id="newCategoryName" class="dos-input" style="text-transform: uppercase;" placeholder="Contoh: MAKANAN" autofocus></div>
+            </div>
+            <div class="dialog-footer">
+                <button class="dos-btn dos-btn-danger" onclick="closeModal('categoryModal')">[ ESC ] BATAL</button>
+                <button class="dos-btn dos-btn-success" onclick="saveNewCategory()">[ ENTER ] SIMPAN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="hpModal" class="modal-overlay">
+        <div class="dos-dialog" style="min-width: 450px;">
+            <div class="dialog-title" id="hpModalTitle">:: HUTANG / PIUTANG ::</div>
+            <div class="dialog-body-left">
+                <input type="hidden" id="hpEditId"><input type="hidden" id="hpType">
+                <div class="form-row"><label>TANGGAL:</label><input type="date" id="hpDate" class="dos-input"></div>
+                <div class="form-row"><label>PIHAK:</label><input type="text" id="hpParty" class="dos-input" placeholder="Nama supplier/customer" style="text-transform: uppercase;"></div>
+                <div class="form-row"><label>KETERANGAN:</label><input type="text" id="hpDesc" class="dos-input" placeholder="Untuk apa"></div>
+                <div class="form-row"><label>JUMLAH (Rp):</label><input type="number" id="hpAmount" class="dos-input" min="0"></div>
+                <div class="form-row"><label>STATUS:</label><select id="hpStatus" class="dos-select"><option value="BELUM">BELUM LUNAS</option><option value="LUNAS">LUNAS</option></select></div>
+                <div class="form-row"><label>TGL LUNAS:</label><input type="date" id="hpPaidDate" class="dos-input"></div>
+            </div>
+            <div class="dialog-footer">
+                <button class="dos-btn dos-btn-danger" onclick="closeModal('hpModal')">[ ESC ] BATAL</button>
+                <button class="dos-btn" onclick="saveHutangPiutang()">[ ENTER ] SIMPAN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="expenseModal" class="modal-overlay">
+        <div class="dos-dialog" style="min-width: 450px;">
+            <div class="dialog-title" id="expenseModalTitle">:: PENGELUARAN ::</div>
+            <div class="dialog-body-left">
+                <input type="hidden" id="expEditId">
+                <div class="form-row"><label>TANGGAL:</label><input type="date" id="expDate" class="dos-input"></div>
+                <div class="form-row"><label>KATEGORI:</label><select id="expCategory" class="dos-select"><option value="SEWA">SEWA</option><option value="LISTRIK">LISTRIK</option><option value="GAJI">GAJI</option><option value="LAINNYA">LAINNYA</option></select></div>
+                <div class="form-row"><label>KETERANGAN:</label><input type="text" id="expDesc" class="dos-input" placeholder="Detail pengeluaran"></div>
+                <div class="form-row"><label>JUMLAH (Rp):</label><input type="number" id="expAmount" class="dos-input" min="0"></div>
+            </div>
+            <div class="dialog-footer">
+                <button class="dos-btn dos-btn-danger" onclick="closeModal('expenseModal')">[ ESC ] BATAL</button>
+                <button class="dos-btn" onclick="saveExpense()">[ ENTER ] SIMPAN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="helpModal" class="modal-overlay">
+        <div class="dos-dialog" style="min-width: 550px; max-width: 650px;">
+            <div class="dialog-title">:: BANTUAN APLIKASI (F1) ::</div>
+            <div class="dialog-body-left"><div id="helpContentDisplay" class="help-content"></div></div>
+            <div class="dialog-footer"><button class="dos-btn" onclick="closeModal('helpModal')">[ ENTER / ESC ] TUTUP</button></div>
+        </div>
+    </div>
+
+    <!-- PRINT AREA (Native A4 PDF Export) -->
+    <div id="printableArea"></div>
+
+    <script>
+        // ==========================================
+        // KONFIGURASI JARINGAN
+        // ==========================================
+        const SERVER_URL = "http://localhost:8000"; 
+        let isNetworkMode = false;
+
+        const DEFAULT_HELP = `=== PANDUAN POS MINIMARKET PRO (ULTIMATE LOCAL) ===\n\n[LOGIN]\n- Admin: admin / admin123 (Akses Penuh)\n- Kasir: kasir / kasir123 (Hanya Transaksi & Laporan Penjualan)\n\n[TRANSAKSI]\n1. Ketik nama/barcode di field KODE BARANG.\n2. Gunakan panah ATAS/BAWAH untuk navigasi.\n3. Tekan ENTER untuk memilih.\n4. F4 untuk Bayar, F9 untuk Batal.\n\n[LAPORAN]\n- Penjualan: Rekap transaksi harian.\n- Rugi-Laba: Pendapatan - HPP - Pengeluaran.\n- Alur Kas: Arus masuk & keluar (termasuk hutang/piutang).\n- Hutang-Piutang: Kelola tagihan ke/dari pihak lain.\n- Pengeluaran: Biaya operasional di luar HPP.\n\n[OFFLINE / NETWORK]\n- Aplikasi otomatis terhubung ke Server Local (Python).\n- Jika server mati, otomatis fallback ke Local Storage.\n- Gunakan menu Pengaturan > Data JSON untuk backup manual.\n\n=== Dikembangkan oleh Muhamad Thorik ===`;
+
+        const DEFAULT_DATA = {
+            settings: { storeName: "MINIMARKET SEJAHTERA", storeAddress: "Jl. Contoh No. 123", storePhone: "0812-3456-7890", storeLogo: "", storeFooter: "Terima kasih.\nBarang tidak dapat ditukar.", helpContent: DEFAULT_HELP, categories: ["MAKANAN", "MINUMAN", "SNACK", "RUMAH TANGGA"] },
+            users: { admin: { username: "admin", passwordHash: "", role: "admin" }, kasir: { username: "kasir", passwordHash: "", role: "kasir" } },
+            menus: [
+                { id: "1", barcode: "8991001", name: "INDOMIE GORENG", category: "MAKANAN", price: 3500, costPrice: 2800, stock: 100 },
+                { id: "2", barcode: "8991002", name: "AQUA 600ML", category: "MINUMAN", price: 4000, costPrice: 2500, stock: 48 },
+                { id: "3", barcode: "8991003", name: "KOPI KAPAL API", category: "MINUMAN", price: 1500, costPrice: 1000, stock: 200 }
+            ],
+            transactions: [], expenses: [], debts: [], receivables: [],
+            auth: { isLoggedIn: false, username: "", role: "" }
+        };
+
+        let appData = {};
+        let cart = [];
+        let currentRole = 'admin';
+        let activeModalStack = [];
+        let filteredProducts = [];
+		let cartHighlightIndex = -1;   // -1 = tidak ada highlight
+		let cartMode = false;          // false = barcode mode, true = cart mode
+        let searchHighlightIndex = -1;
+        let lastKeyTime = 0;
+
+        // ==========================================
+        // SECURITY & DATA (NETWORK AWARE)
+        // ==========================================
+        async function hashPassword(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function loadData() {
+            try {
+                const res = await fetch(`${SERVER_URL}/api/data`);
+                if (res.ok) {
+                    appData = await res.json();
+                    isNetworkMode = true;
+                    document.getElementById('networkStatus').innerText = `● CONNECTED: ${SERVER_URL}`;
+                } else { throw new Error("Server not found"); }
+            } catch (e) {
+                const saved = localStorage.getItem('pos_ultimate_local');
+                appData = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_DATA));
+                isNetworkMode = false;
+                document.getElementById('networkStatus').innerText = "● OFFLINE MODE (LOCAL)";
+                document.getElementById('networkStatus').style.color = 'var(--dos-yellow)';
+                if (!appData.users.admin.passwordHash) {
+                    const [adminHash, kasirHash] = await Promise.all([hashPassword('admin123'), hashPassword('kasir123')]);
+                    appData.users.admin.passwordHash = adminHash;
+                    appData.users.kasir.passwordHash = kasirHash;
+                    saveData();
+                }
+            }
+        }
+
+        async function saveData() {
+            if (isNetworkMode) {
+                await fetch(`${SERVER_URL}/api/data`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(appData) });
+            } else {
+                localStorage.setItem('pos_ultimate_local', JSON.stringify(appData));
+            }
+        }
+
+        // ==========================================
+        // AUTH & UI
+        // ==========================================
+        function selectRole(role) {
+            currentRole = role;
+            document.getElementById('roleAdmin').classList.toggle('active', role === 'admin');
+            document.getElementById('roleKasir').classList.toggle('active', role === 'kasir');
+            document.getElementById('authUser').value = role === 'admin' ? 'admin' : 'kasir';
+            document.getElementById('authPass').value = '';
+            document.getElementById('authPass').focus();
+        }
+
+        async function handleLogin() {
+            const username = document.getElementById('authUser').value.trim().toLowerCase();
+            const password = document.getElementById('authPass').value.trim();
+            if (!username || !password) { dosAlert('ISI USER DAN PASSWORD!'); return; }
+            const user = appData.users[username];
+            if (!user) { dosAlert('USER TIDAK DITEMUKAN!'); return; }
+            if ((await hashPassword(password)) !== user.passwordHash) {
+                dosAlert('PASSWORD SALAH!');
+                document.getElementById('authPass').value = '';
+                document.getElementById('authPass').focus();
+                return;
+            }
+            appData.auth = { isLoggedIn: true, username: username, role: user.role };
+            await saveData();
+            initApp();
+        }
+
+        function handleLogout() {
+            dosConfirm('YAKIN KELUAR?', async () => {
+                appData.auth = { isLoggedIn: false, username: "", role: "" };
+                await saveData();
+                location.reload();
+            });
+        }
+
+        function initApp() {
+            document.getElementById('authOverlay').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'flex';
+            document.getElementById('statusUser').innerText = `USER: ${appData.auth.username.toUpperCase()}`;
+            const roleEl = document.getElementById('statusRole');
+            roleEl.innerText = appData.auth.role.toUpperCase();
+            roleEl.className = `role-indicator ${appData.auth.role}`;
+            
+            applyRoleRestrictions();
+            
+            document.getElementById('setStoreName').value = appData.settings.storeName;
+            document.getElementById('setStoreAddress').value = appData.settings.storeAddress || '';
+            document.getElementById('setStorePhone').value = appData.settings.storePhone || '';
+            document.getElementById('setStoreLogo').value = appData.settings.storeLogo;
+            document.getElementById('setStoreFooter').value = appData.settings.storeFooter;
+            document.getElementById('setHelpContent').value = appData.settings.helpContent || DEFAULT_HELP;
+
+            const today = new Date().toISOString().split('T')[0];
+            ['filterTglMulai', 'filterKasMulai', 'filterExpMulai'].forEach(id => { const el = document.getElementById(id); if (el) el.value = today.substring(0, 8) + '01'; });
+            ['filterTglSelesai', 'filterKasSelesai', 'filterExpSelesai'].forEach(id => { const el = document.getElementById(id); if (el) el.value = today; });
+            const fbRL = document.getElementById('filterBulanRL'); if (fbRL) fbRL.value = today.substring(0, 7);
+
+            renderCatalog();
+            if (appData.auth.role === 'admin') { renderInventory(); renderCategoryTable(); }
+            renderLaporanPenjualan();
+            startClock();
+            setTimeout(() => document.getElementById('barcodeInput').focus(), 500);
+        }
+
+        function applyRoleRestrictions() {
+            const userRole = appData.auth.role;
+            document.querySelectorAll('[data-role]').forEach(el => {
+                if (el.getAttribute('data-role') !== 'all' && el.getAttribute('data-role') !== userRole) {
+                    el.classList.add('disabled');
+                } else {
+                    el.classList.remove('disabled');
+                }
+            });
+        }
+
+        function switchTab(tabId) {
+            const menuItem = document.querySelector(`.menu-item[data-tab="${tabId}"]`);
+            if (menuItem && menuItem.classList.contains('disabled')) { dosAlert('AKSES DITOLAK!'); return; }
+            document.querySelectorAll('.tab-content').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            if (menuItem) menuItem.classList.add('active');
+
+            if (tabId === 'pos') setTimeout(() => { document.getElementById('barcodeInput').focus(); renderCatalog(); }, 100);
+            if (tabId === 'inventory' && appData.auth.role === 'admin') renderInventory();
+            if (tabId === 'reports') {
+                renderLaporanPenjualan();
+                if (appData.auth.role === 'admin') { renderLaporanRugiLaba(); renderLaporanAlurKas(); renderLaporanHutangPiutang(); renderLaporanPengeluaran(); }
+            }
+            if (tabId === 'settings' && appData.auth.role === 'admin') renderCategoryTable();
+        }
+
+        function switchSettingsTab(paneId) {
+            if (appData.auth.role !== 'admin') { dosAlert('AKSES DITOLAK!'); return; }
+            document.querySelectorAll('.settings-tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.settings-tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(paneId).classList.add('active');
+            const btn = document.querySelector(`.settings-tab-btn[data-pane="${paneId}"]`);
+            if (btn) btn.classList.add('active');
+        }
+
+        function switchReportTab(rpaneId) {
+            const btn = document.querySelector(`.report-tab-btn[data-rpane="${rpaneId}"]`);
+            const requiredRole = btn ? btn.getAttribute('data-role') : 'all';
+            if (requiredRole === 'admin' && appData.auth.role !== 'admin') { dosAlert('AKSES DITOLAK!'); return; }
+            
+            document.querySelectorAll('.report-tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.report-tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(rpaneId).classList.add('active');
+            if (btn) btn.classList.add('active');
+
+            if (rpaneId === 'rpane-penjualan') renderLaporanPenjualan();
+            if (rpaneId === 'rpane-rugilaba' && appData.auth.role === 'admin') renderLaporanRugiLaba();
+            if (rpaneId === 'rpane-kas' && appData.auth.role === 'admin') renderLaporanAlurKas();
+            if (rpaneId === 'rpane-hutangpiutang' && appData.auth.role === 'admin') renderLaporanHutangPiutang();
+            if (rpaneId === 'rpane-pengeluaran' && appData.auth.role === 'admin') renderLaporanPengeluaran();
+        }
+
+        function formatRp(val) { return 'Rp ' + Math.floor(val || 0).toLocaleString('id-ID'); }
+        function formatDateID(dateStr) { if (!dateStr) return '-'; return new Date(dateStr).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+        function startClock() { setInterval(() => { document.getElementById('statusClock').innerText = new Date().toLocaleTimeString('id-ID'); }, 1000); }
+
+        // ==========================================
+        // POS & SEARCH
+        // ==========================================
+        function renderCatalog() {
+            const tbody = document.getElementById('catalogTableBody');
+            tbody.innerHTML = '';
+            const productsToShow = filteredProducts.length > 0 ? filteredProducts : appData.menus;
+            if (productsToShow.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--dos-gray); padding: 20px;">TIDAK DITEMUKAN</td></tr>`;
+                return;
+            }
+            productsToShow.forEach((m, index) => {
+                const tr = document.createElement('tr');
+                const stockClass = m.stock <= 10 ? 'style="color: var(--dos-red); font-weight: bold;"' : '';
+                if (index === searchHighlightIndex) tr.classList.add('row-highlighted');
+                tr.innerHTML = `<td>${m.barcode}</td><td>${m.name}</td><td>${formatRp(m.price)}</td><td ${stockClass}>${m.stock}</td>`;
+                tr.onclick = () => { if(m.stock > 0) { addToCart(m.id); clearSearch(); } };
+                tbody.appendChild(tr);
+            });
+        }
+
+        function clearSearch() {
+            document.getElementById('barcodeInput').value = '';
+            filteredProducts = [];
+            searchHighlightIndex = -1;
+            renderCatalog();
+            document.getElementById('barcodeInput').focus();
+        }
+
+        document.getElementById('barcodeInput').addEventListener('input', function(e) {
+            const query = this.value.trim().toUpperCase();
+            const currentTime = new Date().getTime();
+            if (currentTime - lastKeyTime < 50 && query.length > 3) { lastKeyTime = currentTime; return; }
+            lastKeyTime = currentTime;
+            filteredProducts = query ? appData.menus.filter(m => m.name.includes(query) || m.barcode.includes(query)) : [];
+            searchHighlightIndex = filteredProducts.length > 0 ? 0 : -1;
+            renderCatalog();
+            const hint = document.getElementById('searchHint');
+            hint.innerText = query ? `[${filteredProducts.length} hasil] [↑↓] Navigasi [Enter] Pilih` : '[↑↓] Navigasi [Enter] Pilih';
+            hint.classList.toggle('active', query.length > 0);
+        });
+
+document.getElementById('barcodeInput').addEventListener('keydown', function(e) {
+    const query = this.value.trim();
+    
+    // TAB untuk toggle cart mode
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        toggleCartMode();
+        return;
+    }
+    
+    // Jika tidak ada query dan tidak cart mode, biarkan default
+    if (!query && !cartMode) return;
+    
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (cartMode) {
+            // Cart mode: navigasi keranjang
+            cartHighlightIndex = (cartHighlightIndex + 1) % cart.length;
+        } else if (filteredProducts.length > 0) {
+            searchHighlightIndex = (searchHighlightIndex + 1) % filteredProducts.length;
+        }
+        renderCart();
+        renderCatalog();
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (cartMode) {
+            cartHighlightIndex = cartHighlightIndex <= 0 ? cart.length - 1 : cartHighlightIndex - 1;
+        } else if (filteredProducts.length > 0) {
+            searchHighlightIndex = searchHighlightIndex <= 0 ? filteredProducts.length - 1 : searchHighlightIndex - 1;
+        }
+        renderCart();
+        renderCatalog();
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (cartMode) {
+            // Enter di cart mode = kembali ke barcode
+            toggleCartMode();
+        } else if (searchHighlightIndex >= 0 && searchHighlightIndex < filteredProducts.length) {
+            const selected = filteredProducts[searchHighlightIndex];
+            if (selected.stock > 0) { addToCart(selected.id); clearSearch(); }
+            else { dosAlert('STOK HABIS!'); }
+        } else if (filteredProducts.length === 1) {
+            const product = filteredProducts[0];
+            if (product.stock > 0) { addToCart(product.id); clearSearch(); }
+            else { dosAlert('STOK HABIS!'); }
+        }
+    } else if (e.key === 'Escape') {
+        e.preventDefault();
+        if (cartMode) toggleCartMode();
+        else clearSearch();
+    }
+});
+
+        document.getElementById('barcodeInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const code = this.value.trim();
+                if (!code) return;
+                const exact = appData.menus.find(m => m.barcode === code);
+                if (exact && exact.stock > 0) { addToCart(exact.id); this.value = ''; filteredProducts = []; searchHighlightIndex = -1; renderCatalog(); }
+                else { dosAlert('BARANG TIDAK DITEMUKAN / STOK HABIS!'); this.value = ''; }
+            }
+        });
+
+        function addToCart(itemId) {
+            const item = appData.menus.find(m => m.id === itemId);
+            if (!item || item.stock <= 0) return;
+            const existing = cart.find(c => c.id === itemId);
+            if (existing) { if (existing.qty < item.stock) existing.qty++; else dosAlert('STOK TIDAK CUKUP!'); }
+            else { cart.push({ id: item.id, name: item.name, price: item.price, costPrice: item.costPrice || 0, qty: 1 }); }
+            renderCart();
+        }
+
+        function updateCartQty(index, change) {
+            const item = appData.menus.find(m => m.id === cart[index].id);
+            cart[index].qty += change;
+            if (cart[index].qty <= 0) cart.splice(index, 1);
+            else if (cart[index].qty > item.stock) { cart[index].qty = item.stock; dosAlert('BATAS STOK!'); }
+            renderCart();
+        }
+
+        function clearCart() { if(cart.length > 0) dosConfirm('KOSONGKAN KERANJANG?', () => { cart = []; renderCart(); }); }
+
+
+function cartQtyChange(change) {
+    if (cart.length === 0) return;
+    const idx = cartHighlightIndex >= 0 ? cartHighlightIndex : cart.length - 1;
+    updateCartQty(idx, change);
+    // Setelah update, highlight tetap di item yang sama (kecuali dihapus)
+    if (cart.length === 0) cartHighlightIndex = -1;
+    else if (cartHighlightIndex >= cart.length) cartHighlightIndex = cart.length - 1;
+}
+
+function cartDeleteItem() {
+    if (cart.length === 0) return;
+    const idx = cartHighlightIndex >= 0 ? cartHighlightIndex : cart.length - 1;
+    const itemName = cart[idx].name;
+    cart.splice(idx, 1);
+    if (cartHighlightIndex >= cart.length) cartHighlightIndex = cart.length - 1;
+    renderCart();
+    dosAlert(`"${itemName}" DIHAPUS DARI KERANJANG`);
+}
+
+function toggleCartMode() {
+    if (cart.length === 0) {
+        dosAlert('KERANJANG KOSONG! Tambahkan barang dulu.');
+        return;
+    }
+    cartMode = !cartMode;
+    if (cartMode) {
+        // Masuk cart mode: highlight item terakhir
+        cartHighlightIndex = cart.length - 1;
+        document.getElementById('barcodeInput').blur();
+        document.getElementById('searchHint').innerText = '[CART MODE] ↑↓ Navigasi | +/- Qty | Del Hapus | Tab Kembali';
+        document.getElementById('searchHint').classList.add('active');
+    } else {
+        // Kembali ke barcode mode
+        cartHighlightIndex = -1;
+        document.getElementById('barcodeInput').focus();
+        document.getElementById('searchHint').innerText = '[↑↓] Navigasi [Enter] Pilih';
+        document.getElementById('searchHint').classList.remove('active');
+    }
+    renderCart();
+}
+
+function renderCart() {
+    const tbody = document.getElementById('cartTableBody');
+    tbody.innerHTML = '';
+    let total = 0, totalQty = 0;
+    
+    if (cart.length === 0 && cartMode) {
+        cartHighlightIndex = -1;
+        cartMode = false;
+    }
+    if (cartHighlightIndex >= cart.length) cartHighlightIndex = cart.length - 1;
+    
+    cart.forEach((item, index) => {
+        const subtotal = item.price * item.qty;
+        total += subtotal; totalQty += item.qty;
+        const tr = document.createElement('tr');
+        
+        // HIGHLIGHT ROW untuk cart navigation
+        if (index === cartHighlightIndex && cartMode) {
+            tr.classList.add('row-highlighted');
+        }
+        
+        tr.innerHTML = `<td>${index + 1}</td><td>${item.name}</td>
+            <td style="text-align: center;">
+                <span style="cursor: pointer; color: var(--dos-cyan);" onclick="updateCartQty(${index}, -1)">[-]</span>
+                <span style="font-weight: bold; color: var(--dos-yellow);">${item.qty}</span>
+                <span style="cursor: pointer; color: var(--dos-cyan);" onclick="updateCartQty(${index}, 1)">[+]</span>
+            </td>
+            <td style="text-align: right;">${formatRp(subtotal)}</td>`;
+        tbody.appendChild(tr);
+    });
+    document.getElementById('cartTotalQty').innerText = totalQty;
+    document.getElementById('cartTotalAmount').innerText = formatRp(total);
+}
+
+        function openPaymentModal() {
+            if (cart.length === 0) { dosAlert('KERANJANG KOSONG!'); return; }
+            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            document.getElementById('payTotal').value = formatRp(total);
+            document.getElementById('payReceived').value = '';
+            document.getElementById('payChange').value = formatRp(0);
+            document.getElementById('paymentModal').classList.add('active');
+            activeModalStack.push('payment');
+            setTimeout(() => document.getElementById('payReceived').focus(), 100);
+        }
+
+        function calculateChange() {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const received = parseFloat(document.getElementById('payReceived').value) || 0;
+            document.getElementById('payChange').value = formatRp(received > total ? received - total : 0);
+        }
+
+        async function processTransaction() {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const received = parseFloat(document.getElementById('payReceived').value) || 0;
+            const method = document.getElementById('payMethod').value;
+            if (method === 'TUNAI' && received < total) { dosAlert('UANG KURANG!'); return; }
+
+            const trxId = 'TRX-' + Date.now().toString().slice(-6);
+            const now = new Date();
+            cart.forEach(cItem => {
+                const menuItem = appData.menus.find(m => m.id === cItem.id);
+                if (menuItem) menuItem.stock -= cItem.qty;
+            });
+
+            const transaction = {
+                id: trxId, date: now.toISOString(), displayDate: now.toLocaleString('id-ID'),
+                customer: document.getElementById('customerName').value.toUpperCase() || 'UMUM',
+                items: [...cart], total: total, method: method,
+                received: method === 'TUNAI' ? received : total,
+                change: method === 'TUNAI' ? (received - total) : 0,
+                kasir: appData.auth.username
+            };
+            
+            appData.transactions.unshift(transaction);
+            await saveData();
+            
+            closeModal('paymentModal');
+            printReceipt(trxId, transaction);
+            cart = []; renderCart(); renderCatalog();
+            dosAlert('TRANSAKSI BERHASIL!');
+        }
+
+        function printReceipt(trxId, trx) {
+            const s = appData.settings;
+            let itemsHtml = '';
+            trx.items.forEach(i => {
+                itemsHtml += `<div style="display:flex; justify-content:space-between; margin-bottom: 2px;"><span>${i.qty} x ${i.name}</span><span>${formatRp(i.price * i.qty)}</span></div>`;
+            });
+            const html = `<div style="text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace; font-size: 12px; width: 58mm;">
+                <div style="font-weight: bold; font-size: 16px;">${s.storeName}</div>
+                <div>${s.storeAddress}</div><div>Telp: ${s.storePhone}</div>
+                <div style="border-bottom: 1px dashed black; margin: 5px 0;"></div>
+                <div style="text-align: left;">No: ${trxId}<br>Tgl: ${trx.displayDate}<br>Kasir: ${trx.kasir}</div>
+                <div style="border-bottom: 1px dashed black; margin: 5px 0;"></div>
+                ${itemsHtml}
+                <div style="border-bottom: 1px dashed black; margin: 5px 0;"></div>
+                <div style="display:flex; justify-content:space-between; font-weight: bold; font-size: 14px;"><span>TOTAL</span><span>${formatRp(trx.total)}</span></div>
+                <div style="display:flex; justify-content:space-between;"><span>Bayar (${trx.method})</span><span>${formatRp(trx.received)}</span></div>
+                ${trx.method === 'TUNAI' ? `<div style="display:flex; justify-content:space-between;"><span>Kembali</span><span>${formatRp(trx.change)}</span></div>` : ''}
+                <div style="border-bottom: 1px dashed black; margin: 5px 0;"></div>
+                <div style="margin-top: 5px; white-space: pre-line;">${s.storeFooter}</div>
+            </div>`;
+            const printEl = document.getElementById('printableArea');
+            printEl.innerHTML = html;
+            printEl.style.display = 'block';
+            setTimeout(() => { window.print(); printEl.style.display = 'none'; }, 100);
+        }
+
+        // ==========================================
+        // INVENTORY & SETTINGS
+        // ==========================================
+        function renderInventory() {
+            if (appData.auth.role !== 'admin') return;
+            const tbody = document.getElementById('inventoryTableBody');
+            tbody.innerHTML = '';
+            appData.menus.forEach((m, index) => {
+                const tr = document.createElement('tr');
+                const stockClass = m.stock <= 10 ? 'style="color: var(--dos-red); font-weight: bold;"' : '';
+                tr.innerHTML = `<td>${m.barcode}</td><td>${m.name}</td><td>${m.category}</td><td>${formatRp(m.price)}</td><td>${formatRp(m.costPrice || 0)}</td><td ${stockClass}>${m.stock}</td>
+                <td><button class="dos-btn" style="padding: 2px 6px; font-size: 14px;" onclick="editItem(${index})">EDIT</button> <button class="dos-btn dos-btn-danger" style="padding: 2px 6px; font-size: 14px;" onclick="deleteItem(${index})">HAPUS</button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openItemModal() {
+            if (appData.auth.role !== 'admin') { dosAlert('AKSES DITOLAK!'); return; }
+            document.getElementById('itemEditId').value = '';
+            ['itemBarcode', 'itemName', 'itemPrice', 'itemCost', 'itemStock'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('itemCategoryInput').value = '';
+            document.getElementById('itemModalTitle').innerText = ':: TAMBAH BARANG ::';
+            document.getElementById('itemModal').classList.add('active');
+            activeModalStack.push('item');
+            setTimeout(() => document.getElementById('itemBarcode').focus(), 100);
+        }
+
+        function editItem(index) {
+            const m = appData.menus[index];
+            document.getElementById('itemEditId').value = index;
+            document.getElementById('itemBarcode').value = m.barcode;
+            document.getElementById('itemName').value = m.name;
+            document.getElementById('itemCategoryInput').value = m.category;
+            document.getElementById('itemPrice').value = m.price;
+            document.getElementById('itemCost').value = m.costPrice || 0;
+            document.getElementById('itemStock').value = m.stock;
+            document.getElementById('itemModalTitle').innerText = ':: EDIT BARANG ::';
+            document.getElementById('itemModal').classList.add('active');
+            activeModalStack.push('item');
+        }
+
+        async function saveItemData() {
+            if (appData.auth.role !== 'admin') { dosAlert('AKSES DITOLAK!'); return; }
+            const index = document.getElementById('itemEditId').value;
+            const category = document.getElementById('itemCategoryInput').value.trim().toUpperCase() || 'UMUM';
+            const categories = appData.settings.categories || [];
+            if (!categories.includes(category)) { categories.push(category); appData.settings.categories = categories; }
+            
+            const newItem = {
+                id: index !== '' ? appData.menus[index].id : 'ITEM-' + Date.now(),
+                barcode: document.getElementById('itemBarcode').value.trim(),
+                name: document.getElementById('itemName').value.trim().toUpperCase(),
+                category: category,
+                price: parseFloat(document.getElementById('itemPrice').value) || 0,
+                costPrice: parseFloat(document.getElementById('itemCost').value) || 0,
+                stock: parseInt(document.getElementById('itemStock').value) || 0
+            };
+            if (!newItem.name || !newItem.price) { dosAlert('NAMA DAN HARGA WAJIB!'); return; }
+
+            if (index !== '') appData.menus[index] = newItem;
+            else appData.menus.push(newItem);
+            
+            await saveData();
+            closeModal('itemModal');
+            renderInventory();
+            renderCatalog();
+            renderCategoryTable();
+        }
+
+        async function deleteItem(index) {
+            if (appData.auth.role !== 'admin') return;
+            dosConfirm('HAPUS PERMANEN?', async () => {
+                appData.menus.splice(index, 1);
+                await saveData();
+                renderInventory();
+                renderCatalog();
+            });
+        }
+
+        async function saveSettings() {
+            if (appData.auth.role !== 'admin') { dosAlert('AKSES DITOLAK!'); return; }
+            appData.settings.storeName = document.getElementById('setStoreName').value.trim();
+            appData.settings.storeAddress = document.getElementById('setStoreAddress').value.trim();
+            appData.settings.storePhone = document.getElementById('setStorePhone').value.trim();
+            appData.settings.storeLogo = document.getElementById('setStoreLogo').value.trim();
+            appData.settings.storeFooter = document.getElementById('setStoreFooter').value.trim();
+            await saveData();
+            dosAlert('PENGATURAN DISIMPAN!');
+        }
+
+        async function updatePassword() {
+            if (appData.auth.role !== 'admin') { dosAlert('AKSES DITOLAK!'); return; }
+            const newPass = document.getElementById('setNewPass').value.trim();
+            if (!newPass) { dosAlert('MASUKKAN PASSWORD!'); return; }
+            appData.users[appData.auth.username].passwordHash = await hashPassword(newPass);
+            await saveData();
+            document.getElementById('setNewPass').value = '';
+            dosAlert('PASSWORD DIUPDATE!');
+        }
+
+        function saveHelpContent() {
+            const content = document.getElementById('setHelpContent').value.trim();
+            if (!content) { dosAlert('KONTEN TIDAK BOLEH KOSONG!'); return; }
+            appData.settings.helpContent = content;
+            saveData();
+            dosAlert('KONTEN BANTUAN DISIMPAN!');
+        }
+
+        // ==========================================
+        // CATEGORY MANAGEMENT
+        // ==========================================
+        function renderCategoryTable() {
+            if (appData.auth.role !== 'admin') return;
+            const tbody = document.getElementById('categoryTableBody');
+            tbody.innerHTML = '';
+            (appData.settings.categories || []).forEach((cat, index) => {
+                const usedBy = appData.menus.filter(m => m.category === cat).length;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${index + 1}</td><td>${cat}</td><td>${usedBy === 0 ? `<button class="dos-btn dos-btn-danger" style="padding: 2px 6px; font-size: 14px;" onclick="deleteCategory(${index})">HAPUS</button>` : `<span style="color: var(--dos-gray); font-size: 14px;">(Dipakai ${usedBy})</span>`}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openCategoryModal() { 
+            if (appData.auth.role !== 'admin') { dosAlert('AKSES DITOLAK!'); return; }
+            document.getElementById('newCategoryName').value = ''; 
+            document.getElementById('categoryModal').classList.add('active'); 
+            activeModalStack.push('category'); 
+            setTimeout(() => document.getElementById('newCategoryName').focus(), 100); 
+        }
+        
+        function openCategoryModalFromItem() {
+            if (appData.auth.role !== 'admin') { dosAlert('AKSES DITOLAK!'); return; }
+            document.getElementById('newCategoryName').value = document.getElementById('itemCategoryInput').value.trim().toUpperCase();
+            document.getElementById('categoryModal').classList.add('active');
+            activeModalStack.push('category');
+            closeCategoryDropdown();
+            setTimeout(() => document.getElementById('newCategoryName').focus(), 100);
+        }
+
+        async function saveNewCategory() {
+            if (appData.auth.role !== 'admin') { dosAlert('AKSES DITOLAK!'); return; }
+            const name = document.getElementById('newCategoryName').value.trim().toUpperCase();
+            if (!name) { dosAlert('NAMA TIDAK BOLEH KOSONG!'); return; }
+            const categories = appData.settings.categories || [];
+            if (categories.includes(name)) { dosAlert('SUDAH ADA!'); return; }
+            categories.push(name);
+            appData.settings.categories = categories;
+            await saveData();
+            closeModal('categoryModal');
+            renderCategoryTable();
+            dosAlert('KATEGORI DITAMBAHKAN!');
+        }
+
+        async function deleteCategory(index) {
+            if (appData.auth.role !== 'admin') return;
+            const cat = appData.settings.categories[index];
+            const usedBy = appData.menus.filter(m => m.category === cat).length;
+            if (usedBy > 0) { dosAlert(`TIDAK BISA HAPUS! Dipakai ${usedBy} barang.`); return; }
+            dosConfirm(`HAPUS "${cat}"?`, async () => {
+                appData.settings.categories.splice(index, 1);
+                await saveData();
+                renderCategoryTable();
+            });
+        }
+
+        function toggleCategoryDropdown() {
+            const dropdown = document.getElementById('categoryDropdown');
+            if (dropdown.classList.contains('show')) closeCategoryDropdown();
+            else { renderCategoryDropdown(); dropdown.classList.add('show'); }
+        }
+        function closeCategoryDropdown() { document.getElementById('categoryDropdown').classList.remove('show'); }
+        function renderCategoryDropdown() {
+            const dropdown = document.getElementById('categoryDropdown');
+            const currentVal = document.getElementById('itemCategoryInput').value.trim().toUpperCase();
+            dropdown.innerHTML = '';
+            (appData.settings.categories || []).forEach(cat => {
+                const item = document.createElement('div');
+                item.className = `cat-dropdown-item ${cat === currentVal ? 'selected' : ''}`;
+                item.innerText = cat;
+                item.onclick = () => { document.getElementById('itemCategoryInput').value = cat; closeCategoryDropdown(); };
+                dropdown.appendChild(item);
+            });
+        }
+        document.addEventListener('click', function(e) { if (!e.target.closest('.category-input-group')) closeCategoryDropdown(); });
+
+        // ==========================================
+        // REPORTS (LENGKAP)
+        // ==========================================
+        function getFilteredTransactions(startDate, endDate) {
+            return appData.transactions.filter(t => {
+                const tDate = t.date.split('T')[0];
+                return tDate >= startDate && tDate <= endDate;
+            });
+        }
+
+        function renderLaporanPenjualan() {
+            const startDate = document.getElementById('filterTglMulai').value;
+            const endDate = document.getElementById('filterTglSelesai').value;
+            if (!startDate || !endDate) return;
+
+            const filtered = getFilteredTransactions(startDate, endDate);
+            const totalRevenue = filtered.reduce((s, t) => s + t.total, 0);
+            const totalCash = filtered.filter(t => t.method === 'TUNAI').reduce((s, t) => s + t.total, 0);
+            const totalItems = filtered.reduce((s, t) => s + t.items.reduce((ss, i) => ss + i.qty, 0), 0);
+
+            document.getElementById('penjualanSummaryCards').innerHTML = `
+                <div class="report-card"><div class="rc-label">TOTAL OMSET</div><div class="rc-value">${formatRp(totalRevenue)}</div></div>
+                <div class="report-card"><div class="rc-label">TRANSAKSI</div><div class="rc-value">${filtered.length}</div></div>
+                <div class="report-card"><div class="rc-label">ITEM TERJUAL</div><div class="rc-value">${totalItems}</div></div>
+                <div class="report-card"><div class="rc-label">TUNAI</div><div class="rc-value positive">${formatRp(totalCash)}</div></div>`;
+
+            // Retro Chart
+            const chartContainer = document.getElementById('penjualanChart');
+            chartContainer.innerHTML = '';
+            const maxVal = Math.max(...filtered.map(t => t.total), 1);
+            filtered.slice(0, 7).reverse().forEach(t => {
+                const heightPct = (t.total / maxVal) * 100;
+                const dateShort = t.displayDate.split(' ')[0];
+                chartContainer.innerHTML += `<div class="chart-bar-container"><div class="chart-value">${(t.total/1000).toFixed(0)}k</div><div class="chart-bar" style="height: ${Math.max(heightPct, 5)}%;"></div><div class="chart-label">${dateShort}</div></div>`;
+            });
+
+            const tbody = document.getElementById('penjualanTableBody');
+            tbody.innerHTML = '';
+            filtered.forEach(t => {
+                const tr = document.createElement('tr');
+                const itemsSummary = t.items.map(i => `${i.qty}x ${i.name}`).join(', ');
+                tr.innerHTML = `<td>${t.displayDate}</td><td>${t.id}</td><td>${t.customer}</td><td style="font-size:14px; max-width:200px; white-space:normal;">${itemsSummary}</td><td>${t.method}</td><td style="font-weight: bold;">${formatRp(t.total)}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderLaporanRugiLaba() {
+            if (appData.auth.role !== 'admin') return;
+            const monthVal = document.getElementById('filterBulanRL').value;
+            if (!monthVal) return;
+            const [year, month] = monthVal.split('-');
+            const startDate = `${year}-${month}-01`;
+            const lastDay = new Date(year, month, 0).getDate();
+            const endDate = `${year}-${month}-${String(lastDay).padStart(2, '0')}`;
+
+            const filteredTrx = getFilteredTransactions(startDate, endDate);
+            const filteredExp = appData.expenses.filter(e => e.date >= startDate && e.date <= endDate);
+
+            let totalRevenue = 0, totalHPP = 0;
+            filteredTrx.forEach(t => {
+                totalRevenue += t.total;
+                t.items.forEach(i => { totalHPP += (i.costPrice || 0) * i.qty; });
+            });
+            const labaKotor = totalRevenue - totalHPP;
+            
+            let totalOperasional = 0;
+            const expByCat = {};
+            filteredExp.forEach(e => { totalOperasional += e.amount; expByCat[e.category] = (expByCat[e.category] || 0) + e.amount; });
+            const labaBersih = labaKotor - totalOperasional;
+
+            let expRows = '';
+            Object.keys(expByCat).sort().forEach(cat => {
+                expRows += `<div class="print-rl-row"><span>  - ${cat}</span><span>${formatRp(expByCat[cat])}</span></div>`;
+            });
+
+            document.getElementById('rugilabaContent').innerHTML = `
+                <div style="text-align: center; color: var(--dos-yellow); font-size: 18px; font-weight: bold; margin-bottom: 15px;">
+                    LAPORAN LABA RUGI<br><span style="font-size: 15px; color: var(--dos-cyan);">Periode: ${formatDateID(startDate)} s/d ${formatDateID(endDate)}</span>
+                </div>
+                <div class="print-rl-row" style="font-weight: bold; color: var(--dos-cyan);"><span>PENDAPATAN</span><span></span></div>
+                <div class="print-rl-row"><span>  Penjualan Bruto</span><span>${formatRp(totalRevenue)}</span></div>
+                <div class="print-rl-row"><span>  Harga Pokok (HPP)</span><span style="color: var(--dos-red);">(${formatRp(totalHPP)})</span></div>
+                <div class="print-rl-total" style="color: var(--dos-yellow);"><span>LABA KOTOR</span><span>${formatRp(labaKotor)}</span></div>
+                <div class="print-rl-row" style="font-weight: bold; color: var(--dos-cyan); margin-top: 15px;"><span>BEBAN OPERASIONAL</span><span></span></div>
+                ${expRows || '<div class="print-rl-row"><span>  Tidak ada pengeluaran</span><span>Rp 0</span></div>'}
+                <div class="print-rl-row"><span>  Total Beban</span><span style="color: var(--dos-red);">(${formatRp(totalOperasional)})</span></div>
+                <div class="print-rl-total" style="color: ${labaBersih >= 0 ? 'var(--dos-green)' : 'var(--dos-red)'}; font-size: 18px;"><span>LABA / (RUGI) BERSIH</span><span>${formatRp(labaBersih)}</span></div>
+                <div style="margin-top: 15px; padding: 10px; border: 2px solid var(--dos-gray); background: var(--dos-panel); font-size: 15px;">
+                    <span style="color: var(--dos-cyan);">Margin Laba Bersih: </span><span style="color: var(--dos-yellow); font-weight: bold;">${totalRevenue ? ((labaBersih/totalRevenue)*100).toFixed(1) : 0}%</span>
+                </div>`;
+        }
+
+        function renderLaporanAlurKas() {
+            if (appData.auth.role !== 'admin') return;
+            const startDate = document.getElementById('filterKasMulai').value;
+            const endDate = document.getElementById('filterKasSelesai').value;
+            if (!startDate || !endDate) return;
+
+            const trxIn = getFilteredTransactions(startDate, endDate).map(t => ({ date: t.date.split('T')[0], type: 'KAS MASUK', category: 'PENJUALAN', desc: `${t.id} - ${t.customer}`, masuk: t.total, keluar: 0 }));
+            const expOut = appData.expenses.filter(e => e.date >= startDate && e.date <= endDate).map(e => ({ date: e.date, type: 'KAS KELUAR', category: e.category, desc: e.desc, masuk: 0, keluar: e.amount }));
+            const debtPaid = appData.debts.filter(d => d.paidDate && d.paidDate >= startDate && d.paidDate <= endDate && d.status === 'LUNAS').map(d => ({ date: d.paidDate, type: 'KAS KELUAR', category: 'PELUNASAN HUTANG', desc: `Hutang ${d.party}`, masuk: 0, keluar: d.amount }));
+            const recvPaid = appData.receivables.filter(r => r.paidDate && r.paidDate >= startDate && r.paidDate <= endDate && r.status === 'LUNAS').map(r => ({ date: r.paidDate, type: 'KAS MASUK', category: 'PELUNASAN PIUTANG', desc: `Piutang ${r.party}`, masuk: r.amount, keluar: 0 }));
+
+            const allFlows = [...trxIn, ...expOut, ...debtPaid, ...recvPaid].sort((a, b) => a.date.localeCompare(b.date));
+            const totalMasuk = allFlows.reduce((s, f) => s + f.masuk, 0);
+            const totalKeluar = allFlows.reduce((s, f) => s + f.keluar, 0);
+
+            document.getElementById('kasSummaryCards').innerHTML = `
+                <div class="report-card"><div class="rc-label">KAS MASUK</div><div class="rc-value positive">${formatRp(totalMasuk)}</div></div>
+                <div class="report-card"><div class="rc-label">KAS KELUAR</div><div class="rc-value negative">${formatRp(totalKeluar)}</div></div>
+                <div class="report-card"><div class="rc-label">SALDO BERSIH</div><div class="rc-value ${totalMasuk - totalKeluar >= 0 ? 'positive' : 'negative'}">${formatRp(totalMasuk - totalKeluar)}</div></div>`;
+
+            const tbody = document.getElementById('kasTableBody');
+            tbody.innerHTML = '';
+            allFlows.forEach(f => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${formatDateID(f.date)}</td><td style="color: ${f.type === 'KAS MASUK' ? 'var(--dos-green)' : 'var(--dos-red)'}; font-weight: bold;">${f.type}</td><td>${f.category}</td><td style="max-width:250px; white-space:normal; font-size:14px;">${f.desc}</td><td style="color: var(--dos-green);">${f.masuk > 0 ? formatRp(f.masuk) : '-'}</td><td style="color: var(--dos-red);">${f.keluar > 0 ? formatRp(f.keluar) : '-'}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderLaporanHutangPiutang() {
+            if (appData.auth.role !== 'admin') return;
+            const allHP = [...appData.debts.map(d => ({ ...d, tipe: 'HUTANG' })), ...appData.receivables.map(r => ({ ...r, tipe: 'PIUTANG' }))].sort((a, b) => b.date.localeCompare(a.date));
+            const totalHutang = appData.debts.reduce((s, d) => s + d.amount, 0);
+            const totalPiutang = appData.receivables.reduce((s, r) => s + r.amount, 0);
+
+            document.getElementById('hpSummaryCards').innerHTML = `
+                <div class="report-card"><div class="rc-label">TOTAL HUTANG</div><div class="rc-value negative">${formatRp(totalHutang)}</div></div>
+                <div class="report-card"><div class="rc-label">TOTAL PIUTANG</div><div class="rc-value">${formatRp(totalPiutang)}</div></div>`;
+
+            const tbody = document.getElementById('hpTableBody');
+            tbody.innerHTML = '';
+            allHP.forEach(hp => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${formatDateID(hp.date)}</td><td style="color: ${hp.tipe === 'HUTANG' ? 'var(--dos-red)' : 'var(--dos-green)'}; font-weight: bold;">${hp.tipe}</td><td>${hp.party}</td><td style="max-width:200px; white-space:normal; font-size:14px;">${hp.desc}</td><td style="font-weight: bold;">${formatRp(hp.amount)}</td><td><span class="status-badge ${hp.status === 'LUNAS' ? 'status-lunas' : 'status-belum'}">${hp.status}</span></td>
+                <td><button class="dos-btn" style="padding: 2px 6px; font-size: 14px;" onclick="editHutangPiutang('${hp.tipe}', '${hp.id}')">EDIT</button> <button class="dos-btn dos-btn-danger" style="padding: 2px 6px; font-size: 14px;" onclick="deleteHutangPiutang('${hp.tipe}', '${hp.id}')">HAPUS</button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderLaporanPengeluaran() {
+            if (appData.auth.role !== 'admin') return;
+            const startDate = document.getElementById('filterExpMulai').value;
+            const endDate = document.getElementById('filterExpSelesai').value;
+            if (!startDate || !endDate) return;
+
+            const filtered = appData.expenses.filter(e => e.date >= startDate && e.date <= endDate).sort((a, b) => b.date.localeCompare(a.date));
+            const totalExpense = filtered.reduce((s, e) => s + e.amount, 0);
+
+            document.getElementById('expenseSummaryCards').innerHTML = `<div class="report-card"><div class="rc-label">TOTAL PENGELUARAN</div><div class="rc-value negative">${formatRp(totalExpense)}</div></div><div class="report-card"><div class="rc-label">JUMLAH TRANSAKSI</div><div class="rc-value">${filtered.length}</div></div>`;
+
+            const tbody = document.getElementById('expenseTableBody');
+            tbody.innerHTML = '';
+            filtered.forEach(e => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${formatDateID(e.date)}</td><td>${e.category}</td><td style="max-width:250px; white-space:normal; font-size:14px;">${e.desc}</td><td style="font-weight: bold; color: var(--dos-red);">${formatRp(e.amount)}</td>
+                <td><button class="dos-btn" style="padding: 2px 6px; font-size: 14px;" onclick="editExpense('${e.id}')">EDIT</button> <button class="dos-btn dos-btn-danger" style="padding: 2px 6px; font-size: 14px;" onclick="deleteExpense('${e.id}')">HAPUS</button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ==========================================
+        // HP & EXPENSE MODALS
+        // ==========================================
+        function openHutangPiutangModal(type) {
+            if (appData.auth.role !== 'admin') { dosAlert('AKSES DITOLAK!'); return; }
+            document.getElementById('hpEditId').value = '';
+            document.getElementById('hpType').value = type;
+            document.getElementById('hpDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('hpParty').value = '';
+            document.getElementById('hpDesc').value = '';
+            document.getElementById('hpAmount').value = '';
+            document.getElementById('hpStatus').value = 'BELUM';
+            document.getElementById('hpPaidDate').value = '';
+            document.getElementById('hpModalTitle').innerText = type === 'hutang' ? ':: TAMBAH HUTANG ::' : ':: TAMBAH PIUTANG ::';
+            document.getElementById('hpModal').classList.add('active');
+            activeModalStack.push('hp');
+            setTimeout(() => document.getElementById('hpParty').focus(), 100);
+        }
+
+        function editHutangPiutang(type, id) {
+            const list = type === 'HUTANG' ? appData.debts : appData.receivables;
+            const item = list.find(x => x.id === id);
+            if (!item) return;
+            document.getElementById('hpEditId').value = id;
+            document.getElementById('hpType').value = type;
+            document.getElementById('hpDate').value = item.date;
+            document.getElementById('hpParty').value = item.party;
+            document.getElementById('hpDesc').value = item.desc;
+            document.getElementById('hpAmount').value = item.amount;
+            document.getElementById('hpStatus').value = item.status;
+            document.getElementById('hpPaidDate').value = item.paidDate || '';
+            document.getElementById('hpModalTitle').innerText = `:: EDIT ${type} ::`;
+            document.getElementById('hpModal').classList.add('active');
+            activeModalStack.push('hp');
+        }
+
+        async function saveHutangPiutang() {
+            if (appData.auth.role !== 'admin') { dosAlert('AKSES DITOLAK!'); return; }
+            const editId = document.getElementById('hpEditId').value;
+            const type = document.getElementById('hpType').value;
+            const list = type === 'HUTANG' ? appData.debts : appData.receivables;
+            const newItem = {
+                id: editId || (type === 'HUTANG' ? 'HUT-' : 'PIU-') + Date.now().toString().slice(-6),
+                date: document.getElementById('hpDate').value,
+                party: document.getElementById('hpParty').value.trim().toUpperCase(),
+                desc: document.getElementById('hpDesc').value.trim(),
+                amount: parseFloat(document.getElementById('hpAmount').value) || 0,
+                status: document.getElementById('hpStatus').value,
+                paidDate: document.getElementById('hpPaidDate').value || null
+            };
+            if (!newItem.party || !newItem.amount) { dosAlert('PIHAK DAN JUMLAH WAJIB!'); return; }
+            if (editId) { const idx = list.findIndex(x => x.id === editId); if (idx >= 0) list[idx] = newItem; }
+            else { list.push(newItem); }
+            await saveData();
+            closeModal('hpModal');
+            renderLaporanHutangPiutang();
+            dosAlert('DATA DISIMPAN!');
+        }
+
+        async function deleteHutangPiutang(type, id) {
+            if (appData.auth.role !== 'admin') return;
+            dosConfirm('HAPUS DATA INI?', async () => {
+                if (type === 'HUTANG') appData.debts = appData.debts.filter(d => d.id !== id);
+                else appData.receivables = appData.receivables.filter(r => r.id !== id);
+                await saveData();
+                renderLaporanHutangPiutang();
+            });
+        }
+
+        function openExpenseModal() {
+            if (appData.auth.role !== 'admin') { dosAlert('AKSES DITOLAK!'); return; }
+            document.getElementById('expEditId').value = '';
+            document.getElementById('expDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('expCategory').value = 'LAINNYA';
+            document.getElementById('expDesc').value = '';
+            document.getElementById('expAmount').value = '';
+            document.getElementById('expenseModalTitle').innerText = ':: TAMBAH PENGELUARAN ::';
+            document.getElementById('expenseModal').classList.add('active');
+            activeModalStack.push('expense');
+            setTimeout(() => document.getElementById('expDesc').focus(), 100);
+        }
+
+        function editExpense(id) {
+            const item = appData.expenses.find(e => e.id === id);
+            if (!item) return;
+            document.getElementById('expEditId').value = id;
+            document.getElementById('expDate').value = item.date;
+            document.getElementById('expCategory').value = item.category;
+            document.getElementById('expDesc').value = item.desc;
+            document.getElementById('expAmount').value = item.amount;
+            document.getElementById('expenseModalTitle').innerText = ':: EDIT PENGELUARAN ::';
+            document.getElementById('expenseModal').classList.add('active');
+            activeModalStack.push('expense');
+        }
+
+        async function saveExpense() {
+            if (appData.auth.role !== 'admin') { dosAlert('AKSES DITOLAK!'); return; }
+            const editId = document.getElementById('expEditId').value;
+            const newItem = {
+                id: editId || 'EXP-' + Date.now().toString().slice(-6),
+                date: document.getElementById('expDate').value,
+                category: document.getElementById('expCategory').value,
+                desc: document.getElementById('expDesc').value.trim(),
+                amount: parseFloat(document.getElementById('expAmount').value) || 0
+            };
+            if (!newItem.desc || !newItem.amount) { dosAlert('KETERANGAN DAN JUMLAH WAJIB!'); return; }
+            if (editId) { const idx = appData.expenses.findIndex(e => e.id === editId); if (idx >= 0) appData.expenses[idx] = newItem; }
+            else { appData.expenses.push(newItem); }
+            await saveData();
+            closeModal('expenseModal');
+            renderLaporanPengeluaran();
+            dosAlert('PENGELUARAN DISIMPAN!');
+        }
+
+        async function deleteExpense(id) {
+            if (appData.auth.role !== 'admin') return;
+            dosConfirm('HAPUS PENGELUARAN INI?', async () => {
+                appData.expenses = appData.expenses.filter(e => e.id !== id);
+                await saveData();
+                renderLaporanPengeluaran();
+            });
+        }
+
+        // ==========================================
+        // NATIVE A4 PDF EXPORT
+        // ==========================================
+        function printReport(type) {
+            const s = appData.settings;
+            let content = '';
+            let title = '';
+
+            if (type === 'penjualan') {
+                title = 'LAPORAN PENJUALAN';
+                const startDate = document.getElementById('filterTglMulai').value;
+                const endDate = document.getElementById('filterTglSelesai').value;
+                const filtered = getFilteredTransactions(startDate, endDate);
+                const total = filtered.reduce((sum, t) => sum + t.total, 0);
+                const rows = filtered.map(t => `<tr><td>${t.displayDate}</td><td>${t.id}</td><td>${t.customer}</td><td>${t.method}</td><td style="text-align:right;">${formatRp(t.total)}</td></tr>`).join('');
+                content = `<table class="print-table"><thead><tr><th>TANGGAL</th><th>ID</th><th>PELANGGAN</th><th>METODE</th><th>TOTAL</th></tr></thead><tbody>${rows}</tbody><tfoot><tr style="font-weight:bold; background:#eee;"><td colspan="4" style="text-align:right;">TOTAL OMSET:</td><td style="text-align:right;">${formatRp(total)}</td></tr></tfoot></table>`;
+            } else if (type === 'rugilaba') {
+                title = 'LAPORAN RUGI LABA';
+                content = document.getElementById('rugilabaContent').innerHTML.replace(/var\(--dos-[^)]+\)/g, '#000').replace(/var\(--dos-text\)/g, '#000'); // Simplify colors for print
+            } else if (type === 'kas') {
+                title = 'LAPORAN ALUR KAS';
+                const rows = Array.from(document.querySelectorAll('#kasTableBody tr')).map(tr => `<tr>${Array.from(tr.children).map(td => `<td>${td.innerText}</td>`).join('')}</tr>`).join('');
+                content = `<table class="print-table"><thead><tr><th>TANGGAL</th><th>JENIS</th><th>KATEGORI</th><th>KETERANGAN</th><th>MASUK</th><th>KELUAR</th></tr></thead><tbody>${rows}</tbody></table>`;
+            } else if (type === 'hp') {
+                title = 'LAPORAN HUTANG & PIUTANG';
+                const rows = Array.from(document.querySelectorAll('#hpTableBody tr')).map(tr => `<tr>${Array.from(tr.children).slice(0,6).map(td => `<td>${td.innerText}</td>`).join('')}</tr>`).join('');
+                content = `<table class="print-table"><thead><tr><th>TGL</th><th>TIPE</th><th>PIHAK</th><th>KETERANGAN</th><th>JUMLAH</th><th>STATUS</th></tr></thead><tbody>${rows}</tbody></table>`;
+            } else if (type === 'pengeluaran') {
+                title = 'LAPORAN PENGELUARAN';
+                const rows = Array.from(document.querySelectorAll('#expenseTableBody tr')).map(tr => `<tr>${Array.from(tr.children).slice(0,4).map(td => `<td>${td.innerText}</td>`).join('')}</tr>`).join('');
+                content = `<table class="print-table"><thead><tr><th>TANGGAL</th><th>KATEGORI</th><th>KETERANGAN</th><th>JUMLAH</th></tr></thead><tbody>${rows}</tbody></table>`;
+            }
+
+            const html = `
+                <div class="print-header">
+                    <div class="print-title">${s.storeName}</div>
+                    <div>${s.storeAddress} | Telp: ${s.storePhone}</div>
+                    <div style="margin-top: 10px; font-size: 18px; font-weight: bold;">${title}</div>
+                </div>
+                ${content}
+                <div class="print-footer">
+                    <p>Dicetak oleh: ${appData.auth.username.toUpperCase()}</p>
+                    <p>${new Date().toLocaleString('id-ID')}</p>
+                </div>
+            `;
+            
+            const printEl = document.getElementById('printableArea');
+            printEl.innerHTML = html;
+            printEl.style.display = 'block';
+            setTimeout(() => { window.print(); printEl.style.display = 'none'; }, 100);
+        }
+
+        // ==========================================
+        // JSON IMPORT/EXPORT & UTILS
+        // ==========================================
+        async function exportDataToJSON() {
+            if (appData.auth.role !== 'admin') { dosAlert('AKSES DITOLAK!'); return; }
+            const exportObj = { exportDate: new Date().toISOString(), appVersion: "ULTIMATE-v3.0", data: appData };
+            const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `BACKUP_POS_${new Date().toISOString().split('T')[0]}.JSON`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            dosAlert('FILE JSON BERHASIL DI-DOWNLOAD!');
+        }
+
+        function importDataFromJSON() {
+            if (appData.auth.role !== 'admin') { dosAlert('AKSES DITOLAK!'); return; }
+            const file = document.getElementById('jsonImportInput').files[0];
+            if (!file) { dosAlert('PILIH FILE JSON!'); return; }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.data && imported.data.settings && imported.data.menus) {
+                        dosConfirm('PERINGATAN: INI AKAN MENIMPA SEMUA DATA. LANJUTKAN?', async () => {
+                            appData = imported.data;
+                            await saveData();
+                            dosAlert('DATA BERHASIL DIIMPOR!', () => { location.reload(); });
+                        });
+                    } else { dosAlert('FORMAT TIDAK VALID!'); }
+                } catch (err) { dosAlert('GAGAL MEMBACA FILE!'); }
+            };
+            reader.readAsText(file);
+        }
+
+        function showDOSDialog(title, bodyHtml, buttons) {
+            return new Promise((resolve) => {
+                document.getElementById('dosDialogTitle').innerText = title;
+                document.getElementById('dosDialogBody').innerHTML = bodyHtml;
+                const footer = document.getElementById('dosDialogFooter');
+                footer.innerHTML = '';
+                buttons.forEach(btn => {
+                    const button = document.createElement('button');
+                    button.className = `dos-btn ${btn.className || ''}`;
+                    button.innerText = btn.text;
+                    button.onclick = () => {
+                        document.getElementById('dosDialogOverlay').classList.remove('active');
+                        activeModalStack = activeModalStack.filter(m => m !== 'dosDialog');
+                        resolve(btn.value);
+                    };
+                    footer.appendChild(button);
+                });
+                document.getElementById('dosDialogOverlay').classList.add('active');
+                activeModalStack.push('dosDialog');
+                setTimeout(() => { const b = footer.querySelector('button'); if (b) b.focus(); }, 50);
+            });
+        }
+
+        function dosAlert(message, callback) { showDOSDialog(':: PERHATIAN ::', message, [{ text: '[ OK ]', value: 'ok' }]).then(() => { if (callback) callback(); }); }
+        function dosConfirm(message, onYes, onNo) {
+            showDOSDialog(':: KONFIRMASI ::', message, [
+                { text: '[ YA ]', value: 'yes', className: 'dos-btn-success' },
+                { text: '[ BATAL ]', value: 'no', className: 'dos-btn-danger' }
+            ]).then(result => { if (result === 'yes' && onYes) onYes(); });
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            activeModalStack = activeModalStack.filter(m => m !== id.replace('Modal', ''));
+            if (document.getElementById('tab-pos').classList.contains('active')) document.getElementById('barcodeInput').focus();
+        }
+
+        function openHelpModal() {
+            document.getElementById('helpContentDisplay').innerText = appData.settings.helpContent || DEFAULT_HELP;
+            document.getElementById('helpModal').classList.add('active');
+            activeModalStack.push('help');
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) { if (e.target === this) { this.classList.remove('active'); activeModalStack = []; closeCategoryDropdown(); } });
+        });
+
+        document.addEventListener('keydown', function(e) {
+		const key = e.key;
+    
+    // === SHORTCUT KERANJANG (Hanya aktif di tab POS & tidak ada modal terbuka) ===
+    if (document.getElementById('tab-pos').classList.contains('active') && activeModalStack.length === 0) {
+        if (key === '+' || key === '=') {
+            e.preventDefault();
+            cartQtyChange(1);
+            return;
+        }
+        if (key === '-' || key === '_') {
+            e.preventDefault();
+            cartQtyChange(-1);
+            return;
+        }
+        if (key === 'Delete') {
+            e.preventDefault();
+            cartDeleteItem();
+            return;
+        }
+    }
+    
+            if (e.altKey) {
+                if (e.key.toLowerCase() === 't') { e.preventDefault(); switchTab('pos'); return; }
+                if (e.key.toLowerCase() === 'i') { e.preventDefault(); if(appData.auth.role==='admin') switchTab('inventory'); return; }
+                if (e.key.toLowerCase() === 'l') { e.preventDefault(); switchTab('reports'); return; }
+                if (e.key.toLowerCase() === 'p') { e.preventDefault(); if(appData.auth.role==='admin') switchTab('settings'); return; }
+                if (e.key.toLowerCase() === 'k') { e.preventDefault(); handleLogout(); return; }
+            }
+            if (!appData.auth.isLoggedIn) {
+                if (e.key === 'Enter' || e.key === 'F10') { e.preventDefault(); handleLogin(); }
+                return;
+            }
+            if (e.key === 'F1') { e.preventDefault(); openHelpModal(); return; }
+            if (e.key === 'F2') { e.preventDefault(); switchTab('pos'); setTimeout(() => document.getElementById('barcodeInput').focus(), 100); return; }
+            if (e.key === 'F4') { e.preventDefault(); if (document.getElementById('tab-pos').classList.contains('active')) openPaymentModal(); return; }
+            if (e.key === 'F9') { e.preventDefault(); if (document.getElementById('tab-pos').classList.contains('active')) clearCart(); return; }
+            if (e.key === 'F10') { e.preventDefault(); handleLogout(); return; }
+            if (e.key === 'Escape') { 
+                e.preventDefault(); 
+                if (document.activeElement.id === 'barcodeInput' && document.getElementById('barcodeInput').value.trim()) clearSearch();
+                else {
+                    if(activeModalStack.length > 0) closeModal(activeModalStack[activeModalStack.length-1] + 'Modal');
+                    else closeModal('dosDialogOverlay');
+                }
+                return; 
+            }
+            if (e.key === 'Enter' && document.getElementById('paymentModal').classList.contains('active')) { e.preventDefault(); processTransaction(); return; }
+            if (e.key === 'Enter' && document.getElementById('itemModal').classList.contains('active')) { e.preventDefault(); saveItemData(); return; }
+            if (e.key === 'Enter' && document.getElementById('categoryModal').classList.contains('active')) { e.preventDefault(); saveNewCategory(); return; }
+            if (e.key === 'Enter' && document.getElementById('hpModal').classList.contains('active')) { e.preventDefault(); saveHutangPiutang(); return; }
+            if (e.key === 'Enter' && document.getElementById('expenseModal').classList.contains('active')) { e.preventDefault(); saveExpense(); return; }
+        });
+
+        // INIT
+        loadData().then(() => {
+            if (appData.auth.isLoggedIn) initApp();
+            else setTimeout(() => selectRole('admin'), 100);
+        });
+    </script>
+</body>
+</html>
